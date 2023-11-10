@@ -9,7 +9,6 @@ import 'package:go_router/go_router.dart';
 import 'package:logging/logging.dart' hide Level;
 import 'package:provider/provider.dart';
 
-import '../ads/ads_controller.dart';
 import '../audio/audio_controller.dart';
 import '../audio/sounds.dart';
 import '../game_internals/level_state.dart';
@@ -129,8 +128,8 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
     final adsRemoved =
         context.read<InAppPurchaseController?>()?.adRemoval.active ?? false;
     if (!adsRemoved) {
-      final adsController = context.read<AdsController?>();
-      adsController?.preloadAd();
+      // final adsController = context.read<AdsController?>();
+      // adsController?.preloadAd();
     }
   }
 

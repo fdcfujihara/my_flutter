@@ -17,7 +17,6 @@ import 'package:go_router/go_router.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 
-import 'ads/ads_controller.dart';
 import 'app_lifecycle/app_lifecycle.dart';
 import 'audio/audio_controller.dart';
 import 'games_services/games_services.dart';
@@ -60,7 +59,6 @@ Future<void> main() async {
     SystemUiMode.edgeToEdge,
   );
 
-  AdsController? adsController;
   GamesServicesController? gamesServicesController;
   InAppPurchaseController? inAppPurchaseController;
 
@@ -69,7 +67,6 @@ Future<void> main() async {
       settingsPersistence: LocalStorageSettingsPersistence(),
       playerProgressPersistence: LocalStoragePlayerProgressPersistence(),
       inAppPurchaseController: inAppPurchaseController,
-      adsController: adsController,
       gamesServicesController: gamesServicesController,
     ),
   );
@@ -156,13 +153,10 @@ class MyApp extends StatelessWidget {
 
   final InAppPurchaseController? inAppPurchaseController;
 
-  final AdsController? adsController;
-
   const MyApp({
     required this.playerProgressPersistence,
     required this.settingsPersistence,
     required this.inAppPurchaseController,
-    required this.adsController,
     required this.gamesServicesController,
     super.key,
   });
@@ -181,7 +175,6 @@ class MyApp extends StatelessWidget {
           ),
           Provider<GamesServicesController?>.value(
               value: gamesServicesController),
-          Provider<AdsController?>.value(value: adsController),
           ChangeNotifierProvider<InAppPurchaseController?>.value(
               value: inAppPurchaseController),
           Provider<SettingsController>(
