@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logging/logging.dart';
+import 'package:my_flutter/style/confetti.dart';
 import 'package:provider/provider.dart';
 
 import 'app_lifecycle/app_lifecycle.dart';
@@ -80,7 +81,8 @@ class MyApp extends StatelessWidget {
       GoRoute(
           path: '/',
           builder: (context, state) =>
-              const MainMenuScreen(key: Key('main menu')),
+              // const MainMenuScreen(key: Key('main menu')),
+              const ConfettiScreen(key: Key('confetti')),
           routes: [
             GoRoute(
                 path: 'play',
@@ -210,7 +212,8 @@ class MyApp extends StatelessWidget {
             theme: ThemeData.from(
               colorScheme: ColorScheme.fromSeed(
                 seedColor: palette.darkPen,
-                background: palette.backgroundMain,
+                // background: palette.backgroundMain,
+                background: Colors.grey[900],
               ),
               textTheme: TextTheme(
                 bodyMedium: TextStyle(

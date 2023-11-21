@@ -27,6 +27,7 @@ dependencies:
   firebase_crashlytics: ^3.3.5  # Error reporting
   games_services: ^3.0.0  # Achievements and leaderboards
   in_app_purchase: ^3.0.1  # In-app purchases
+  confetti: ^0.7.0
 
 dev_dependencies:
   flutter_lints: ^3.0.0
