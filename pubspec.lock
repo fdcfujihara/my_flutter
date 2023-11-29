@@ -193,6 +193,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.6"
+  fade_out_particle:
+    dependency: "direct main"
+    description:
+      name: fade_out_particle
+      sha256: f4d243798f6f78259526a093a3d96935f1a183f90e0924e29d9d3f40a4daf133
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.1"
   fake_async:
     dependency: transitive
     description:
@@ -789,6 +797,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.5.3"
+  text_to_path_maker:
+    dependency: "direct main"
+    description:
+      name: text_to_path_maker
+      sha256: f6c32efe89416a943487693db51648a0e573963106ecbb39f35417b977f23cab
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.6.0"
   typed_data:
     dependency: transitive
     description:

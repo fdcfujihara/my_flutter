@@ -28,6 +28,8 @@ dependencies:
   games_services: ^3.0.0  # Achievements and leaderboards
   in_app_purchase: ^3.0.1  # In-app purchases
   confetti: ^0.7.0
+  fade_out_particle: ^1.2.1
+  text_to_path_maker: ^0.6.0
 
 dev_dependencies:
   flutter_lints: ^3.0.0
