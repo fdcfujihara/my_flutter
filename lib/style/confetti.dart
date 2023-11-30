@@ -28,8 +28,14 @@ class ConfettiScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[900],
-      body: Confetti(),
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+              image: AssetImage("assets/images/background_night_sky.jpg"),
+              fit: BoxFit.cover),
+        ),
+        child: Confetti(),
+      ),
     );
   }
 }
@@ -40,21 +46,22 @@ class Confetti extends StatefulWidget {
 }
 
 class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
-  late ConfettiController _controllerCenter;
-  late ConfettiController _controllerCenterRight;
-  late ConfettiController _controllerCenterLeft;
-  late ConfettiController _controllerTopCenter;
-  late ConfettiController _controllerBottomCenter;
-  late final AnimationController _controller = AnimationController(
-    duration: const Duration(seconds: 8),
-    vsync: this,
-  )..repeat(reverse: true);
+  late final ConfettiController _controllerOnce = ConfettiController(
+      duration: const Duration(seconds: 1)
+  );
+  late final ConfettiController _controllerJet = ConfettiController(
+      duration: const Duration(seconds: 1)
+  );
 
   Animation<AlignmentGeometry> animateVertically(double x) {
     return Tween<AlignmentGeometry>(
       begin: Alignment(x, -1.0),
       end: Alignment(x, 1.0),
-    ).animate(_controller);
+    ).animate(AnimationController(
+      duration: const Duration(seconds: 8),
+      vsync: this,
+    )
+      ..repeat(reverse: true));
   }
 
   late List<Path> charPaths;
@@ -62,16 +69,6 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _controllerCenter =
-        ConfettiController(duration: const Duration(seconds: 10));
-    _controllerCenterRight =
-        ConfettiController(duration: const Duration(seconds: 10));
-    _controllerCenterLeft =
-        ConfettiController(duration: const Duration(seconds: 10));
-    _controllerTopCenter =
-        ConfettiController(duration: const Duration(seconds: 10));
-    _controllerBottomCenter =
-        ConfettiController(duration: const Duration(seconds: 10));
 
     rootBundle.load("assets/Permanent_Marker/PermanentMarker-Regular.ttf").then((ByteData data) {
       // Create a font reader
@@ -85,20 +82,18 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
         myFont.generatePathForCharacter(99),
       ];
     });
+
+    _controllerJet.play();
   }
 
   @override
   void dispose() {
-    _controllerCenter.dispose();
-    _controllerCenterRight.dispose();
-    _controllerCenterLeft.dispose();
-    _controllerTopCenter.dispose();
-    _controllerBottomCenter.dispose();
+    _controllerOnce.dispose();
     super.dispose();
   }
 
   Path drawChar(Size size) {
-    return PMTransform.moveAndScale(charPaths.sample(1).single, 0, 0, 0.04, 0.04);
+    return PMTransform.moveAndScale(charPaths.sample(1).single, 0, 0, 0.08, 0.08);
   }
 
   /// A custom Path to paint stars.
@@ -107,14 +102,15 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
     double degToRad(double deg) => deg * (pi / 180.0);
 
     const numberOfPoints = 5;
-    final halfWidth = size.width / 2;
+    var newSize = 2 * size.width / 3;
+    final halfWidth = newSize / 2;
     final externalRadius = halfWidth;
     final internalRadius = halfWidth / 2.5;
     final degreesPerStep = degToRad(360 / numberOfPoints);
     final halfDegreesPerStep = degreesPerStep / 2;
     final path = Path();
     final fullAngle = degToRad(360);
-    path.moveTo(size.width, halfWidth);
+    path.moveTo(newSize, halfWidth);
 
     for (double step = 0; step < fullAngle; step += degreesPerStep) {
       path.lineTo(halfWidth + externalRadius * cos(step),
@@ -128,134 +124,184 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    const xOffset = 0.5;
     return SafeArea(
       child: Stack(
         children: <Widget>[
           //CENTER -- Blast
           AlignTransition(
-            alignment: animateVertically(-0.5),
+            alignment: animateVertically(-xOffset*1.2),
             child: Stack(
               children: [
-                ConfettiWidget(
-                  confettiController: _controllerCenter,
-                  blastDirectionality: BlastDirectionality.explosive,
-                  // don't specify a direction, blast randomly
-                  shouldLoop: false,
-                  numberOfParticles: 40, // number of particles to emit
-                  // start again as soon as the animation is finished
-                  colors: const [
-                    // Colors.green,
-                    // Colors.blue,
-                    // Colors.pink,
-                    Color.fromARGB(255, 255, 255, 100),
-                    Color.fromARGB(120, 255, 255, 100),
-                  ],
-                  // manually specify the colors to be used
-                  createParticlePath: drawChar, // define a custom shape/path.
-                  strokeWidth: 4,
-                  strokeColor: const Color.fromARGB(80, 255, 255, 100),
-                ),
-                TextButton(
-                    onPressed: () => _controllerCenter.play(),
-                    child: _display('blast\nstars')),
+                buildFireworksWidget(),
+                _largeText( 'English', Colors.white ),
               ],
             ),
-          ),
-          Align(
-            alignment: const Alignment(-0.5, 1.0),
-            child: TextButton(
-                onPressed: () {
-                  _controllerCenter.play();
-
-                  final AnimationController controller = AnimationController(
-                    duration: const Duration(seconds: 1),
-                    vsync: this,
-                  );
-
-                  Tween<AlignmentGeometry>(
-                    begin: Alignment(0, -1.0),
-                    end: Alignment(0, 1.0),
-                  ).animate(controller);
-                },
-                child: _display('blast\nstars')),
           ),
 
           //CENTER RIGHT -- Emit left
           AlignTransition(
-            alignment: animateVertically(0.5),
+            alignment: animateVertically(xOffset*1.2),
             child: Stack(
               children: [
-                ConfettiWidget(
-                  confettiController: _controllerCenterRight,
-                  blastDirection: 3 * pi / 2, // radial value - UP
-                  // particleDrag: 0.05, // apply drag to the confetti
-                  emissionFrequency: 0.01, // how often it should emit
-                  numberOfParticles: 40, // number of particles to emit
-                  gravity: 0.05, // gravity - or fall speed
-                  shouldLoop: false,
-                  colors: const [
-                    Colors.green,
-                    Colors.blue,
-                    Colors.pink
-                  ], // manually specify the colors to be used
-                  // strokeWidth: 4,
-                  // strokeColor: const Color.fromARGB(80, 255, 255, 255),
-                ),
-                TextButton(
-                    onPressed: () => _controllerCenterRight.play(),
-                    child: _display('pump')),
+                buildFireworksWidget(),
+                _largeText( 'Teacher', Colors.white),
               ],
             ),
           ),
+
           Align(
-            alignment: const Alignment(0.5, 1.0),
-            child: TextButton(
-                onPressed: () => _controllerCenterRight.play(),
-                child: _display('pump')),
+            alignment: const Alignment(-xOffset, 0.3),
+            child: Stack(
+              alignment: Alignment.center,
+                children: [
+              _largeText('英語', Colors.yellow),
+              buildJetWidget(),
+            ]),
           ),
 
-          // //BOTTOM CENTER
-          // AlignTransition(
-          //   alignment: animateVertically(-0.8),
-          //   child: Stack(
-          //     children: [
-          //       ConfettiWidget(
-          //         confettiController: _controllerBottomCenter,
-          //         blastDirection: -pi / 2,
-          //         emissionFrequency: 0.03,
-          //         numberOfParticles: 40,
-          //         maxBlastForce: 50,
-          //         minBlastForce: 40,
-          //         gravity: 0.3,
-          //         colors: const [
-          //           Color.fromARGB(255, 255, 255, 100),
-          //           Color.fromARGB(120, 255, 255, 100),
-          //         ], // manually specify the colors to be used
-          //         strokeWidth: 4,
-          //         strokeColor: const Color.fromARGB(80, 255, 255, 100),
-          //       ),
-          //       TextButton(
-          //           onPressed: () => _controllerBottomCenter.play(),
-          //           child: _display('hard and\ninfrequent'))
-          //     ],
-          //   ),
-          // ),
-          // Align(
-          //   alignment: const Alignment(-0.8, 1.0),
-          //   child: TextButton(
-          //       onPressed: () => _controllerBottomCenter.play(),
-          //       child: _display('hard and\ninfrequent')),
-          // ),
+          Align(
+            alignment: const Alignment(xOffset, 0.3),
+            child: Stack(
+                alignment: Alignment.center,
+                children: [
+              _largeText('校長', Colors.yellow),
+              buildJetWidget(),
+            ]),
+          ),
 
+          // Bottom word stack
+          Align(
+            alignment: const Alignment(-(xOffset*1.3), 1.0),
+            child: Wrap(
+              children: [
+                Column(
+                  children: <Widget>[
+                    TextButton(
+                        onPressed: () => _controllerOnce.play(),
+                        child: _textButton('ビサヤ語')),
+                    TextButton(
+                        onPressed: () => _controllerOnce.play(),
+                        child: _textButton('韓国語')),
+                    TextButton(
+                        onPressed: () => _controllerOnce.play(),
+                        child: _textButton('英語')),
+                    TextButton(
+                        onPressed: () => _controllerOnce.play(),
+                        child: _textButton('中国語')),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          Align(
+            alignment: const Alignment(xOffset*1.3, 1.0),
+            child: Wrap(
+              children: [
+                Column(
+                  children: <Widget>[
+                    TextButton(
+                        onPressed: () => _controllerOnce.play(),
+                        child: _textButton('先生')),
+                    TextButton(
+                        onPressed: () => _controllerOnce.play(),
+                        child: _textButton('生徒')),
+                    TextButton(
+                        onPressed: () => _controllerOnce.play(),
+                        child: _textButton('校長')),
+                    TextButton(
+                        onPressed: () => _controllerOnce.play(),
+                        child: _textButton('学校')),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Text _display(String text) {
+  ConfettiWidget buildFireworksWidget() {
+    return ConfettiWidget(
+      confettiController: _controllerOnce,
+      blastDirectionality: BlastDirectionality.explosive,
+      maxBlastForce: 40,
+      emissionFrequency: 0.001,
+      shouldLoop: false,
+      // number of particles to emit
+      numberOfParticles: 80,
+      // start again as soon as the animation is finished
+      colors: const [
+        Color.fromARGB(255, 255, 255, 100),
+        Color.fromARGB(120, 255, 255, 100),
+      ],
+      createParticlePath: drawChar,
+      strokeWidth: 4,
+      strokeColor: const Color.fromARGB(80, 255, 255, 100),
+    );
+  }
+
+  ConfettiWidget buildJetWidget() {
+    return ConfettiWidget(
+      confettiController: _controllerJet,
+      blastDirectionality: BlastDirectionality.directional,
+      emissionFrequency: 0.50,
+      blastDirection: pi / 2,
+      // don't specify a direction, blast randomly
+      shouldLoop: true,
+      numberOfParticles: 2,
+      // number of particles to emit
+      // start again as soon as the animation is finished
+      colors: const [
+        Colors.yellow
+      ],
+      createParticlePath: drawStar,
+      strokeWidth: 2,
+      strokeColor: const Color.fromARGB(80, 255, 255, 255),
+    );
+  }
+
+  Container _textButton(String text) {
+    return Container(
+      width: 200,
+      padding: const EdgeInsets.all(10),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: Colors.white,
+        ),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: _text(text),
+    );
+  }
+
+  Text _largeText(String text, Color color) {
     return Text(
       text,
-      style: const TextStyle(color: Colors.white, fontSize: 20),
+      style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.bold,
+          shadows: const [
+            Shadow(
+              blurRadius: 20.0,
+              color: Colors.yellow,
+              offset: Offset(5.0, 5.0),
+            ),
+          ],
+          fontSize: 50),
+    );
+  }
+
+  Text _text(String text) {
+    return Text(
+      text,
+      style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          fontSize: 30),
     );
   }
 }
