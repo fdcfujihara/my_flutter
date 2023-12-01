@@ -30,6 +30,7 @@ dependencies:
   confetti: ^0.7.0
   fade_out_particle: ^1.2.1
   text_to_path_maker: ^0.6.0
+  animated_text_kit: ^4.2.2
 
 dev_dependencies:
   flutter_lints: ^3.0.0
@@ -49,7 +50,13 @@ flutter:
   fonts:
     - family: Permanent Marker
       fonts:
-        - asset: assets/Permanent_Marker/PermanentMarker-Regular.ttf
+        - asset: assets/fonts/PermanentMarker-Regular.ttf
+    - family: Noto Sans JP
+      fonts:
+        - asset: assets/fonts/NotoSansJP-Bold.ttf
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Bold.ttf
 
   # This section identifies your Flutter project as a module meant for
   # embedding in a native host app.  These identifiers should _not_ ordinarily

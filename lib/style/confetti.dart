@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:confetti/confetti.dart';
 import 'package:text_to_path_maker/text_to_path_maker.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'dart:typed_data';
 
 /// Shows a confetti (celebratory) animation: paper snippings falling down.
@@ -47,18 +48,77 @@ class Confetti extends StatefulWidget {
 
 class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
 
-  late final ConfettiController controllerFireworks = ConfettiController(
+  static const xOffset = 0.5;
+  var turns = 0.0;
+  var isLeftRocketVisible = false;
+  var isRightRocketVisible = false;
+  var isLeftInvaderVisible = true;
+  var isLeftWordItemVisible = true;
+  late List<Path> charPaths;
+
+  late final ConfettiController controllerWordFireworks = ConfettiController(
       duration: const Duration(seconds: 1)
   );
 
-  late final ConfettiController controllerJet = ConfettiController(
+  late final ConfettiController controllerStarFireworks = ConfettiController(
+      duration: const Duration(seconds: 1)
+  );
+
+  late final ConfettiController controllerLeftJet = ConfettiController(
+      duration: const Duration(seconds: 1)
+  );
+  late final ConfettiController controllerRightJet = ConfettiController(
       duration: const Duration(seconds: 1)
   );
 
   late final Animation<double> invaderLoopController = AnimationController(
     duration: const Duration(seconds: 8),
     vsync: this,
-  )..repeat(reverse: true);
+  )
+    ..repeat(reverse: true);
+
+  late final AnimationController controllerRotation = AnimationController(
+    duration: const Duration(seconds: 1),
+    vsync: this,
+  )
+    ..addListener(() {
+      setState(() => turns += 0.02);
+    });
+
+  AnimationController buildRocketAnimationController(Duration duration) {
+    return AnimationController(
+      duration: duration,
+      vsync: this,
+    )
+      ..addListener(() {
+        setState(() {});
+      });
+  }
+
+  late final controllerLeftRocket = buildRocketAnimationController(const Duration(milliseconds: 700));
+  late final controllerRightRocket = buildRocketAnimationController(const Duration(seconds: 2));
+
+  @override
+  void initState() {
+    super.initState();
+
+    rootBundle.load("assets/fonts/Roboto-Bold.ttf").then((ByteData data) {
+      // Create a font reader
+      var reader = PMFontReader();
+      // Parse the font
+      var myFont = reader.parseTTFAsset(data);
+      // Generate the complete path for a specific character
+      charPaths = List.generate(26, (i) => 65 + i)//.followedBy(List.generate(6, (i) => 97 + i))
+          .map((i) => myFont.generatePathForCharacter(i))
+          .toList();
+    });
+  }
+
+  @override
+  void dispose() {
+    controllerWordFireworks.dispose();
+    super.dispose();
+  }
 
   Animation<AlignmentGeometry> buildInvaderLoopAnimation(double x) {
     return Tween<AlignmentGeometry>(
@@ -67,82 +127,16 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
     ).animate(invaderLoopController);
   }
 
-  AnimationController buildRocketAnimationController() {
-    return AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )
-      ..addListener(() {
-        setState(() {});
-      });
-  }
-
-  late final leftRocketAnimationController = buildRocketAnimationController();
-  late final rightRocketAnimationController = buildRocketAnimationController();
-
-  Animation<AlignmentGeometry> animationWordRocket(double x, AnimationController controller) {
-    return Tween<AlignmentGeometry>(
-      begin: Alignment(x, 1.0),
-      end: Alignment(x, -2.0),
-    ).animate(controller);
-  }
-
-  static const xOffset = 0.5;
-
-  late List<Path> charPaths;
-
-  @override
-  void initState() {
-    super.initState();
-
-    rootBundle.load("assets/Permanent_Marker/PermanentMarker-Regular.ttf").then((ByteData data) {
-      // Create a font reader
-      var reader = PMFontReader();
-      // Parse the font
-      var myFont = reader.parseTTFAsset(data);
-      // Generate the complete path for a specific character
-      charPaths = List.generate(6, (i) => 97 + i)
-          .map((i) => myFont.generatePathForCharacter(i))
-          .toList();
-    });
-  }
-
-  @override
-  void dispose() {
-    controllerFireworks.dispose();
-    super.dispose();
-  }
-
-  bool isLeftRocketVisible = false;
-  bool isRightRocketVisible = false;
-
   @override
   Widget build(BuildContext context) {
+    var invaderLeft = buildInvaderLeft();
+    var invaderRight = buildInvaderRight();
 
     return SafeArea(
       child: Stack(
         children: <Widget>[
-          //CENTER -- Blast
-          AlignTransition(
-            alignment: buildInvaderLoopAnimation(-xOffset*1.2),
-            child: Stack(
-              children: [
-                buildFireworksWidget(),
-                _largeText( 'English', Colors.white ),
-              ],
-            ),
-          ),
-
-          //CENTER RIGHT -- Emit left
-          AlignTransition(
-            alignment: buildInvaderLoopAnimation(xOffset*1.2),
-            child: Stack(
-              children: [
-                buildFireworksWidget(),
-                _largeText( 'Teacher', Colors.white),
-              ],
-            ),
-          ),
+          invaderLeft,
+          invaderRight,
 
           // Bottom word stack
           Align(
@@ -151,15 +145,18 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
               children: [
                 Column(
                   children: <Widget>[
+                    Visibility(
+                      visible: isLeftWordItemVisible,
+                      child: TextButton(
+                          onPressed: animateLeftRocket,
+                          child: _textButton('英語')),
+                    ),
                     TextButton(
-                        onPressed: animateLeftRocket ,
+                        onPressed: animateLeftRocket,
                         child: _textButton('ビサヤ語')),
                     TextButton(
                         onPressed: animateLeftRocket,
                         child: _textButton('韓国語')),
-                    TextButton(
-                        onPressed: animateLeftRocket,
-                        child: _textButton('英語')),
                     TextButton(
                         onPressed: animateLeftRocket,
                         child: _textButton('中国語')),
@@ -193,35 +190,57 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
             ),
           ),
 
-          buildWordRocket('英語', -xOffset * 1.2, isLeftRocketVisible, leftRocketAnimationController) ,
-          buildWordRocket('校長', xOffset * 1.2, isRightRocketVisible, rightRocketAnimationController),
-
+          buildWordRocket('英語', -xOffset, isLeftRocketVisible,
+              controllerLeftRocket, invaderLeft.alignment.value),
+          buildWordRocketFail('校長', xOffset, isRightRocketVisible,
+              controllerRightRocket, invaderRight.alignment.value),
         ],
       ),
     );
   }
 
-  Visibility buildWordRocket(String text, double x, bool isVisible, AnimationController controller) {
-    return Visibility(
-        visible: isVisible,
-        child: AlignTransition(
-          alignment: animationWordRocket(x, controller),
-          child: Stack(alignment: Alignment.center, children: [
-            _largeText(text, Colors.yellow),
-            buildJetWidget(),
-          ]),
-        ));
+  Widget buildWordRocket(String text, double x, bool isVisible,
+      AnimationController controller, AlignmentGeometry alignment) {
+    return AlignTransition(
+      alignment: Tween<AlignmentGeometry>(
+        begin: Alignment(x, 1.0),
+        end: alignment.add(const Alignment(0, 0.1)),
+      ).animate(CurvedAnimation(parent: controller, curve: Curves.easeIn)),
+      child: Stack(alignment: Alignment.center, children: [
+        buildJetWidget(controllerLeftJet),
+        Visibility(
+          visible: isVisible,
+          child: _largeText(text, Colors.white),
+        ),
+      ]),
+    );
   }
 
-  ConfettiWidget buildFireworksWidget() {
+  Widget buildWordRocketFail(String text, double x, bool isVisible,
+      AnimationController controller, AlignmentGeometry alignment) {
+    return AlignTransition(
+      alignment: Tween<AlignmentGeometry>(
+        begin: Alignment(x, 1.0),
+        end: alignment.add(const Alignment(0, 0.1)),
+      ).animate(CurvedAnimation(parent: controller, curve: Curves.bounceOut)),
+      child: Stack(alignment: Alignment.center, children: [
+        buildJetWidget(controllerRightJet),
+        buildStarFireworksWidget(),
+        Visibility(
+          visible: isVisible,
+          child: _largeText(text, Colors.white),
+        ),
+      ]),
+    );
+  }
+
+  ConfettiWidget buildWordFireworksWidget() {
     return ConfettiWidget(
-      confettiController: controllerFireworks,
+      confettiController: controllerWordFireworks,
       blastDirectionality: BlastDirectionality.explosive,
       maxBlastForce: 40,
       emissionFrequency: 0.001,
-      shouldLoop: false,
-      // number of particles to emit
-      numberOfParticles: 80,
+      numberOfParticles: 120,
       // start again as soon as the animation is finished
       colors: const [
         Color.fromARGB(255, 255, 255, 100),
@@ -233,21 +252,33 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
     );
   }
 
-  ConfettiWidget buildJetWidget() {
+  ConfettiWidget buildStarFireworksWidget() {
+    return ConfettiWidget(
+      confettiController: controllerStarFireworks,
+      blastDirectionality: BlastDirectionality.explosive,
+      maxBlastForce: 20,
+      emissionFrequency: 0.001,
+      numberOfParticles: 80,
+      colors: const [ Colors.yellow ],
+      createParticlePath: drawStar,
+      strokeWidth: 2,
+      strokeColor: const Color.fromARGB(80, 255, 255, 255),
+    );
+  }
+
+  ConfettiWidget buildJetWidget(ConfettiController controller) {
     return ConfettiWidget(
       canvas: const Size(1500, 1500),
-      confettiController: controllerJet,
+      confettiController: controller,
       blastDirectionality: BlastDirectionality.directional,
+      maxBlastForce: 120,
+      particleDrag: 0.03,
       emissionFrequency: 0.50,
       blastDirection: pi / 2,
       gravity: 1.0,
       shouldLoop: true,
       numberOfParticles: 4,
-      // number of particles to emit
-      // start again as soon as the animation is finished
-      colors: const [
-        Colors.yellow
-      ],
+      colors: const [ Colors.yellow ],
       createParticlePath: drawStar,
       strokeWidth: 2,
       strokeColor: const Color.fromARGB(80, 255, 255, 255),
@@ -256,10 +287,11 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
 
   Container _textButton(String text) {
     return Container(
-      width: 200,
-      padding: const EdgeInsets.all(10),
+      width: 230,
+      padding: const EdgeInsets.all(20),
       alignment: Alignment.center,
       decoration: BoxDecoration(
+        color: const Color.fromARGB(30, 255, 255, 255),
         border: Border.all(
           color: Colors.white,
         ),
@@ -269,23 +301,12 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
     );
   }
 
-  Container buildBorderContainer(Widget widget) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.white,
-        ),
-      ),
-      child: widget,
-    );
-  }
-
   Text _largeText(String text, Color color) {
     return Text(
       text,
       style: TextStyle(
           color: color,
-          fontWeight: FontWeight.bold,
+          fontFamily: 'Noto Sans JP',
           shadows: const [
             Shadow(
               blurRadius: 20.0,
@@ -293,7 +314,7 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
               offset: Offset(5.0, 5.0),
             ),
           ],
-          fontSize: 50),
+          fontSize: 80),
     );
   }
 
@@ -301,40 +322,48 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
     return Text(
       text,
       style: const TextStyle(
-          fontWeight: FontWeight.bold,
+          fontFamily: 'Noto Sans JP',
           color: Colors.white,
-          fontSize: 30),
+          fontSize: 35),
     );
   }
 
   animateLeftRocket() {
+    controllerLeftRocket.reset();
+    controllerLeftJet.play();
+    isLeftInvaderVisible = true;
     isLeftRocketVisible = true;
-    controllerJet.play();
-    leftRocketAnimationController
-        .forward()
-        .timeout(const Duration(milliseconds: 1000), onTimeout: () {
-      controllerFireworks.play();
-    }).then((value) {
-      leftRocketAnimationController.reset();
+    isLeftWordItemVisible = false;
+    controllerLeftRocket.forward().then((value) {
+      controllerWordFireworks.play();
+      controllerLeftJet.stop();
+      isLeftInvaderVisible = false;
       isLeftRocketVisible = false;
+      setState(() {});
+    }).timeout(const Duration(milliseconds: 4000), onTimeout: () {
+      controllerLeftRocket.reset();
+      isLeftInvaderVisible = true;
+      isLeftWordItemVisible = true;
+      setState(() {});
     });
   }
 
   animateRightRocket() {
+    controllerRightRocket.reset();
     isRightRocketVisible = true;
-    controllerJet.play();
-    rightRocketAnimationController
-        .forward()
-        .timeout(const Duration(milliseconds: 1000), onTimeout: () {
-      controllerFireworks.play();
-    }).then((value) {
-      rightRocketAnimationController.reset();
+    controllerRightJet.play();
+    controllerRightRocket.forward().then((value) {
+      controllerStarFireworks.play();
+      controllerRightJet.stop();
       isRightRocketVisible = false;
+      setState(() {});
+    }).timeout(const Duration(milliseconds: 5000), onTimeout: () {
+      controllerRightRocket.reset();
     });
   }
 
   Path drawChar(Size size) {
-    return PMTransform.moveAndScale(charPaths.sample(1).single, 0, 0, 0.08, 0.08);
+    return PMTransform.moveAndScale(charPaths.sample(1).single, 0, 0, 0.04, 0.04);
   }
 
   /// A custom Path to paint stars.
@@ -343,15 +372,14 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
     double degToRad(double deg) => deg * (pi / 180.0);
 
     const numberOfPoints = 5;
-    var newSize = 2 * size.width / 3;
-    final halfWidth = newSize / 2;
+    final halfWidth = size.width / 2;
     final externalRadius = halfWidth;
     final internalRadius = halfWidth / 2.5;
     final degreesPerStep = degToRad(360 / numberOfPoints);
     final halfDegreesPerStep = degreesPerStep / 2;
     final path = Path();
     final fullAngle = degToRad(360);
-    path.moveTo(newSize, halfWidth);
+    path.moveTo(size.width, halfWidth);
 
     for (double step = 0; step < fullAngle; step += degreesPerStep) {
       path.lineTo(halfWidth + externalRadius * cos(step),
@@ -363,4 +391,52 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
     return path;
   }
 
+  buildInvaderLeft() => AlignTransition(
+    alignment: buildInvaderLoopAnimation(-xOffset * 1.2),
+    child: Stack(
+      children: [
+        buildWordFireworksWidget(),
+        Visibility(
+          visible: isLeftInvaderVisible,
+          child: buildColorizedText('English'),
+        ),
+      ],
+    ),
+  );
+
+  buildInvaderRight() {
+    return AlignTransition(
+      alignment: buildInvaderLoopAnimation(xOffset * 1.2),
+      child: buildColorizedText('Teacher'),
+    );
+  }
+
+  buildColorizedText(String text) {
+    const colorizeColors = [
+      Colors.yellow,
+      Colors.white,
+    ];
+    return AnimatedTextKit(
+      repeatForever: true,
+      isRepeatingAnimation: true,
+      animatedTexts: [
+        ColorizeAnimatedText(
+          text,
+          textStyle: const TextStyle(
+              color: Colors.yellow,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Noto Sans JP',
+              shadows: [
+                Shadow(
+                  blurRadius: 20.0,
+                  color: Colors.yellow,
+                  offset: Offset(5.0, 5.0),
+                ),
+              ],
+              fontSize: 50),
+          colors: colorizeColors,
+        ),
+      ],
+    );
+  }
 }
