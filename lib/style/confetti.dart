@@ -47,10 +47,11 @@ class Confetti extends StatefulWidget {
 
 class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
 
-  late final ConfettiController _controllerFireworks = ConfettiController(
+  late final ConfettiController controllerFireworks = ConfettiController(
       duration: const Duration(seconds: 1)
   );
-  late final ConfettiController _controllerJet = ConfettiController(
+
+  late final ConfettiController controllerJet = ConfettiController(
       duration: const Duration(seconds: 1)
   );
 
@@ -59,7 +60,7 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
     vsync: this,
   )..repeat(reverse: true);
 
-  Animation<AlignmentGeometry> animateInvaderLoop(double x) {
+  Animation<AlignmentGeometry> buildInvaderLoopAnimation(double x) {
     return Tween<AlignmentGeometry>(
       begin: Alignment(x, -0.8),
       end: Alignment(x, -0.2),
@@ -100,8 +101,6 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
       // Parse the font
       var myFont = reader.parseTTFAsset(data);
       // Generate the complete path for a specific character
-      // list of int from 97 to 122
-
       charPaths = List.generate(6, (i) => 97 + i)
           .map((i) => myFont.generatePathForCharacter(i))
           .toList();
@@ -110,7 +109,7 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _controllerFireworks.dispose();
+    controllerFireworks.dispose();
     super.dispose();
   }
 
@@ -125,7 +124,7 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
         children: <Widget>[
           //CENTER -- Blast
           AlignTransition(
-            alignment: animateInvaderLoop(-xOffset*1.2),
+            alignment: buildInvaderLoopAnimation(-xOffset*1.2),
             child: Stack(
               children: [
                 buildFireworksWidget(),
@@ -136,7 +135,7 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
 
           //CENTER RIGHT -- Emit left
           AlignTransition(
-            alignment: animateInvaderLoop(xOffset*1.2),
+            alignment: buildInvaderLoopAnimation(xOffset*1.2),
             child: Stack(
               children: [
                 buildFireworksWidget(),
@@ -216,7 +215,7 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
 
   ConfettiWidget buildFireworksWidget() {
     return ConfettiWidget(
-      confettiController: _controllerFireworks,
+      confettiController: controllerFireworks,
       blastDirectionality: BlastDirectionality.explosive,
       maxBlastForce: 40,
       emissionFrequency: 0.001,
@@ -237,7 +236,7 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
   ConfettiWidget buildJetWidget() {
     return ConfettiWidget(
       canvas: const Size(1500, 1500),
-      confettiController: _controllerJet,
+      confettiController: controllerJet,
       blastDirectionality: BlastDirectionality.directional,
       emissionFrequency: 0.50,
       blastDirection: pi / 2,
@@ -310,11 +309,11 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
 
   animateLeftRocket() {
     isLeftRocketVisible = true;
-    _controllerJet.play();
+    controllerJet.play();
     leftRocketAnimationController
         .forward()
         .timeout(const Duration(milliseconds: 1000), onTimeout: () {
-      _controllerFireworks.play();
+      controllerFireworks.play();
     }).then((value) {
       leftRocketAnimationController.reset();
       isLeftRocketVisible = false;
@@ -323,11 +322,11 @@ class _ConfettiState extends State<Confetti> with TickerProviderStateMixin {
 
   animateRightRocket() {
     isRightRocketVisible = true;
-    _controllerJet.play();
+    controllerJet.play();
     rightRocketAnimationController
         .forward()
         .timeout(const Duration(milliseconds: 1000), onTimeout: () {
-      _controllerFireworks.play();
+      controllerFireworks.play();
     }).then((value) {
       rightRocketAnimationController.reset();
       isRightRocketVisible = false;
